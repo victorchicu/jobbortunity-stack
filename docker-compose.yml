@@ -1,0 +1,57 @@
+services:
+  # STACK
+  mongo:
+    image: mongo:8.0.3-noble
+    ports:
+      - "27017:27017"
+    restart: "no"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - zumely
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      retries: 10
+      timeout: 10s
+      interval: 10s
+  kafka:
+    image: apache/kafka-native:3.9.1
+    ports:
+      - "9092:9092"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    networks:
+      - zumely
+    environment:
+      KAFKA_LISTENERS: ${KAFKA_LISTENERS}
+      KAFKA_ADVERTISED_LISTENERS: ${KAFKA_ADVERTISED_LISTENERS}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: ${KAFKA_LISTENER_SECURITY_PROTOCOL_MAP}
+      KAFKA_NODE_ID: ${KAFKA_NODE_ID}
+      KAFKA_PROCESS_ROLES: ${KAFKA_PROCESS_ROLES}
+      KAFKA_CONTROLLER_LISTENER_NAMES: ${KAFKA_CONTROLLER_LISTENER_NAMES}
+      KAFKA_CONTROLLER_QUORUM_VOTERS: ${KAFKA_CONTROLLER_QUORUM_VOTERS}
+      KAFKA_INTER_BROKER_LISTENER_NAME: ${KAFKA_INTER_BROKER_LISTENER_NAME}
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: ${KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR}
+  kafka-ui:
+    image: ghcr.io/kafbat/kafka-ui:latest
+    ports:
+      - "8080:8080"
+    networks:
+      - zumely
+    depends_on:
+      - kafka
+    environment:
+      DYNAMIC_CONFIG_ENABLED: ${DYNAMIC_CONFIG_ENABLED}
+      KAFKA_CLUSTERS_0_NAME: ${KAFKA_CLUSTERS_0_NAME}
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: ${KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS}
+
+volumes:
+  mongo_data:
+#  kafka_data:
+
+networks:
+  zumely:
+    driver: bridge
