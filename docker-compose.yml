@@ -48,7 +48,6 @@ volumes:
   mongo_data:
   rabbitmq_data:
   rabbitmq_log:
-
 networks:
   zumely:
     driver: bridge
