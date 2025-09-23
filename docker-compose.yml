@@ -8,7 +8,7 @@ services:
     volumes:
       - mongo_data:/data/db
     networks:
-      - zumely
+      - jobbortunity
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
@@ -29,7 +29,7 @@ services:
       - rabbitmq_data:/var/lib/rabbitmq
       - rabbitmq_log:/var/log/rabbitmq
     networks:
-      - zumely
+      - jobbortunity
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-admin}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-admin}
@@ -49,5 +49,5 @@ volumes:
   rabbitmq_data:
   rabbitmq_log:
 networks:
-  zumely:
+  jobbortunity:
     driver: bridge
