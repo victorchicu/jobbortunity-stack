@@ -1,14 +1,19 @@
 services:
   # STACK
   mongo:
-    image: mongo:8.0.3-noble
+    build:
+      context: .
+      dockerfile: mongo/Dockerfile
     ports:
       - "27017:27017"
     restart: "no"
     volumes:
       - mongo_data:/data/db
+      - ./mongo-init:/docker-entrypoint-initdb.d:ro
     networks:
       - jobbortunity
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}

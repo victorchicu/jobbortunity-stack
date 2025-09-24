@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Starting environment.."
+echo "Building environment.."
 
 case "$1" in
   production)
@@ -15,10 +15,9 @@ case "$1" in
 esac
 
 if [ "$#" -eq 0 ]; then
-#  docker compose --env-file="$ENV_FILE" build --no-cache
-  docker compose --env-file="$ENV_FILE" up -d
+  docker compose --env-file="$ENV_FILE" build --no-cache
 else
-  docker compose --env-file="$ENV_FILE" up -d "$@"
+  docker compose --env-file="$ENV_FILE" build "$@"
 fi
 
-echo "Environment is started."
+echo "Environment is built."
