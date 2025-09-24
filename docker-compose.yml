@@ -1,19 +1,16 @@
 services:
   # STACK
   mongo:
-    build:
-      context: .
-      dockerfile: mongo/Dockerfile
+    image: mongo:8.0.3-noble
     ports:
       - "27017:27017"
     restart: "no"
+    command: mongod --replSet rs0 --bind_ip_all --keyFile /etc/keyfile
     volumes:
       - mongo_data:/data/db
-      - ./mongo-init:/docker-entrypoint-initdb.d:ro
+      - ./mongo/keyfile:/etc/keyfile
     networks:
       - jobbortunity
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
@@ -22,6 +19,30 @@ services:
       retries: 10
       timeout: 10s
       interval: 10s
+  mongo-init:
+    image: mongo:8.0.3-noble
+    networks:
+      - jobbortunity
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    command: >
+      bash -c '
+        sleep 5;
+        mongosh --host mongo:27017 -u $$MONGO_INITDB_ROOT_USERNAME -p $$MONGO_INITDB_ROOT_PASSWORD --authenticationDatabase admin --eval "
+          rs.initiate({
+            _id: \"rs0\",
+            members: [
+              { _id: 0, host: \"mongo:27017\", priority: 2 },
+            ]
+          });
+        " || mongosh --host mongo:27017 -u $$MONGO_INITDB_ROOT_USERNAME -p $$MONGO_INITDB_ROOT_PASSWORD --authenticationDatabase admin --eval "rs.status()";
+        exit 0;
+      '
+    restart: "no"
   rabbitmq:
     image: rabbitmq:4.1.4-management
     ports:
