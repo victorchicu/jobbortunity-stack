@@ -14,8 +14,14 @@ case "$1" in
     ;;
 esac
 
+mkdir -p secrets
+
+if [ ! -f secrets/keyfile ]; then
+  openssl rand -base64 756 > secrets/keyfile
+  chmod 600 keyfile
+fi
+
 if [ "$#" -eq 0 ]; then
-#  docker compose --env-file="$ENV_FILE" build --no-cache
   docker compose --env-file="$ENV_FILE" up -d
 else
   docker compose --env-file="$ENV_FILE" up -d "$@"
