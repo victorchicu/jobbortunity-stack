@@ -27,14 +27,6 @@ services:
       interval: 10s
   mongo-init:
     image: mongo:8.0.3-noble
-    networks:
-      - jobbortunity
-    depends_on:
-      mongo:
-        condition: service_healthy
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
     command: >
       bash -c '
         sleep 5;
@@ -49,37 +41,51 @@ services:
         exit 0;
       '
     restart: "no"
-#  rabbitmq:
-#    image: rabbitmq:4.1.4-management
-#    ports:
-#      - "5672:5672" # AMQP
-#      - "15672:15672" # Management UI
-#      - "15674:15674" # STOMP WebSocket
-#      - "61613:61613" # STOMP
-#    restart: "no"
-#    volumes:
-#      - rabbitmq_data:/var/lib/rabbitmq
-#      - rabbitmq_log:/var/log/rabbitmq
-#    networks:
-#      - jobbortunity
-#    environment:
-#      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-admin}
-#      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-admin}
-#      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_DEFAULT_VHOST:-/}
-#    command: >
-#      bash -c "
-#        rabbitmq-plugins enable --offline rabbitmq_management rabbitmq_stomp rabbitmq_web_stomp &&
-#        rabbitmq-server
-#      "
-#    healthcheck:
-#      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
-#      retries: 10
-#      timeout: 10s
-#      interval: 10s
+    networks:
+      - jobbortunity
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+  ollama:
+    image: docker.io/ollama/ollama:latest
+    tty: true
+    ports:
+      - "7869:11434"
+    restart: "no"
+    volumes:
+      - ./ollama/ollama:/root/.ollama
+    networks:
+      - jobbortunity
+    pull_policy: always
+    environment:
+      - OLLAMA_KEEP_ALIVE=24h
+      - OLLAMA_HOST=0.0.0.0
+  ollama-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    ports:
+      - "8080:8080"
+    restart: "no"
+    volumes:
+      - ./ollama/ollama-webui:/app/backend/data
+    networks:
+      - jobbortunity
+    depends_on:
+      - ollama
+    environment: # https://docs.openwebui.com/getting-started/env-configuration#default_models
+      - OLLAMA_BASE_URLS=http://host.docker.internal:7869 #comma separated ollama hosts
+      - ENV=dev
+      - WEBUI_AUTH=False
+      - WEBUI_NAME=Workley AI
+      - WEBUI_URL=http://localhost:8080
+      - WEBUI_SECRET_KEY=t0p-s3cr3t
+    extra_hosts:
+      - host.docker.internal:host-gateway
 volumes:
   mongo_data:
-#  rabbitmq_data:
-#  rabbitmq_log:
+  ollama_data:
 networks:
   jobbortunity:
     driver: bridge
