@@ -9,7 +9,7 @@ services:
       - mongo_data:/data/db
       - ./secrets/keyfile:/tmp/keyfile:ro
     networks:
-      - jobbortunity
+      - workley
     entrypoint: >
       bash -c "
         cp /tmp/keyfile /etc/mongo-keyfile &&
@@ -42,7 +42,7 @@ services:
       '
     restart: "no"
     networks:
-      - jobbortunity
+      - workley
     depends_on:
       mongo:
         condition: service_healthy
@@ -58,7 +58,7 @@ services:
     volumes:
       - ./ollama/ollama:/root/.ollama
     networks:
-      - jobbortunity
+      - workley
     pull_policy: always
     environment:
       - OLLAMA_KEEP_ALIVE=24h
@@ -71,7 +71,7 @@ services:
     volumes:
       - ./ollama/ollama-webui:/app/backend/data
     networks:
-      - jobbortunity
+      - workley
     depends_on:
       - ollama
     environment: # https://docs.openwebui.com/getting-started/env-configuration#default_models
@@ -87,5 +87,5 @@ volumes:
   mongo_data:
   ollama_data:
 networks:
-  jobbortunity:
+  workley:
     driver: bridge
